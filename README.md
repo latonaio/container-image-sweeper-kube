@@ -1,6 +1,7 @@
 # container-image-sweeper-kube
 
-container-image-sweeper-kube は、不要になった Docker イメージを自動で削除するツールです。AION のマイクロサービスとして定期実行のほか、コマンドラインから一度きりの実行も可能です。
+container-image-sweeper-kube は、主にエッジコンピューティング環境において、不要になった Docker イメージを指定された一定の期間ごと、または指定時刻ごとに自動で削除するマイクロサービスです。  
+本マイクロサービスは定期実行のほか、コマンドラインから一度きりの実行も可能です。
 
 
 ## 実行環境
@@ -26,6 +27,7 @@ make docker-build
 
 * 以下の定義を AION の `services.yml` に貼り付けてください。
 
+なお、自動で削除される期間（INTERVAL）等の設定のカスタマイズは、環境変数を用いて以下の例のように記載してください。
 ```yaml
   container-image-sweeper-kube:
     startup: yes

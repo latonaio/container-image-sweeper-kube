@@ -7,8 +7,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/latonaio/container-image-sweeper-kube/cmd/args"
-	"github.com/latonaio/container-image-sweeper-kube/internal/docker"
 	"github.com/latonaio/golang-logging-library/logger"
 	"github.com/spf13/cobra"
 	"go.uber.org/multierr"
@@ -17,11 +15,11 @@ import (
 var log = logger.NewLogger()
 
 type App struct {
-	cmdArgs *args.CommandArgs
+	cmdArgs *CommandArgs
 }
 
 func Command() *cobra.Command {
-	cmdArgs := args.NewCommandArgs()
+	cmdArgs := NewCommandArgs()
 	cmd := &cobra.Command{
 		Use: os.Args[0],
 		Run: func(cmd *cobra.Command, args []string) {
@@ -87,26 +85,30 @@ func (a *App) mainImpl(ctx context.Context) error {
 	log.Debug("started")
 	defer func() { log.Debug("exited") }()
 
-	c, err := docker.NewDockerClient()
+	m, err := NewDockerManager()
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 
+	return a.process(ctx, m)
+}
+
+func (a *App) process(ctx context.Context, m *DockerManager) error {
 	// エラーオブジェクト
 	// 無視可能なエラーが発生した場合はそのエラーを記録して続行し、最後にまとめて返す
 	var errs error
 
 	// dangling なイメージとビルドキャッシュの削除
 	if a.cmdArgs.PruneImages {
-		errs = multierr.Append(errs, c.PruneImages(ctx))
+		errs = multierr.Append(errs, m.PruneImages(ctx))
 	}
 
 	if a.cmdArgs.PruneBuildCache {
-		errs = multierr.Append(errs, c.PruneBuildCache(ctx))
+		errs = multierr.Append(errs, m.PruneBuildCache(ctx))
 	}
 
 	// 削除対象のイメージを取得
-	imgMap, err := c.GetImages(ctx)
+	imgMap, err := m.GetImages(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get image list: %w", err)
 	}
@@ -118,13 +120,13 @@ func (a *App) mainImpl(ctx context.Context) error {
 
 	// イメージ削除を実行
 	for _, imgID := range imgIDs {
-		errs = multierr.Append(err, c.DeleteImage(ctx, imgID))
+		errs = multierr.Append(err, m.DeleteImage(ctx, imgID))
 	}
 
 	return errs
 }
 
-func (a *App) getImagesToBeDeleted(imgMap map[string][]*docker.TagInfo) []string {
+func (a *App) getImagesToBeDeleted(imgMap map[string][]*TagInfo) []string {
 	imgTags := make([]string, 0)
 	for repoName, tagInfos := range imgMap {
 		// 残すイメージ数の残りカウント

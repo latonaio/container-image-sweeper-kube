@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o container-image-sweeper ./cmd
+RUN go build -o container-image-sweeper ./cmd/container-image-sweeper
 
 # Runtime Container
 FROM alpine:3.15

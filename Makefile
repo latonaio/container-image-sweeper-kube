@@ -4,12 +4,17 @@
 
 .PHONY: run
 run: ## デーモン化せずローカルで実行
-	go run ./cmd --daemonize=false
+	go run ./cmd/container-image-sweeper --daemonize=false
 
 
 .PHONY: docker-build
 docker-build: ## Docker イメージのビルド
 	bash docker-build.sh
+
+
+.PHONY: mock-docker-client
+mock-docker-client: ## IDockerClient のモックを作成
+	mockgen -source=./internal/app/docker.go -destination=./internal/mock_app/mock_docker.go
 
 
 # Self-Documented Makefile

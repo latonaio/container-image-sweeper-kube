@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/docker/docker v20.10.12+incompatible
+	github.com/golang/mock v1.6.0
 	github.com/latonaio/golang-logging-library v1.0.7
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
